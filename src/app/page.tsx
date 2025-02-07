@@ -1,16 +1,17 @@
 "use client";
 
 import { Advocate } from "@/db/types";
+import { DEBOUNCE_DELAY } from "@/utils/constants";
+import useDebounce from "@/utils/useDebounce";
 import { useEffect, useState } from "react";
 
 export default function Home() {
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
   const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
-  /** rather than interacting with the DOM directly, track search term state here */
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const debouncedSearchTerm = useDebounce(searchTerm, DEBOUNCE_DELAY);
 
   useEffect(() => {
-    console.log("fetching advocates...");
     fetch("/api/advocates").then((response) => {
       response.json().then((jsonResponse) => {
         setAdvocates(jsonResponse.data);
@@ -19,35 +20,37 @@ export default function Home() {
     });
   }, []);
 
-  const onChange = (e: { target: { value: any } }) => {
-    /** need to create separate search terms - one that is displayed, the other (sanitized) to be used in fuzzy search below */
-    const unsanitizedSearchTerm = e.target.value;
-    const sanitizedSearchTerm = e.target.value
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/gi, " ")
-      .trim();
+  // Filtering runs only when debouncedSearchTerm updates
+  useEffect(() => {
+    if (debouncedSearchTerm !== "") {
+      const sanitizedSearchTerm = debouncedSearchTerm
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/gi, " ")
+        .trim();
 
-    setSearchTerm(unsanitizedSearchTerm);
+      /** implement basic fuzzy search */
+      const filteredAdvocates = advocates.filter((advocate) => {
+        const combinedString = [
+          advocate.firstName.toLowerCase(),
+          advocate.lastName.toLowerCase(),
+          advocate.city.toLowerCase(),
+          advocate.degree.toLowerCase(),
+          advocate.specialties.map((s) => s.toLowerCase()).join(" "),
+          advocate.yearsOfExperience.toString().toLowerCase(),
+          advocate.phoneNumber.toString().toLowerCase(),
+        ].join(" ");
 
-    console.log("filtering advocates...");
-    /** implement basic fuzzy search functionality */
-    const filteredAdvocates = advocates.filter((advocate) => {
-      const combinedString = [
-        advocate.firstName.toLowerCase(),
-        advocate.lastName.toLowerCase(),
-        advocate.city.toLowerCase(),
-        advocate.degree.toLowerCase(),
-        advocate.specialties
-          .map((specialty) => specialty.toLowerCase())
-          .join(" "),
-        advocate.yearsOfExperience.toString().toLowerCase(),
-        advocate.phoneNumber.toString().toLowerCase(),
-      ].join(" ");
+        return combinedString.includes(sanitizedSearchTerm);
+      });
 
-      return combinedString.includes(sanitizedSearchTerm);
-    });
+      setFilteredAdvocates(filteredAdvocates);
+    } else {
+      setFilteredAdvocates(advocates);
+    }
+  }, [advocates, debouncedSearchTerm]);
 
-    setFilteredAdvocates(filteredAdvocates);
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
   };
 
   const onClick = () => {
