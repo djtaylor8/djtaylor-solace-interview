@@ -109,15 +109,15 @@ export default function Home() {
                 </td>
               </tr>
             )}
-            {filteredAdvocates.map((advocate, index) => (
-              <tr key={index} className="border-t hover:bg-gray-100">
+            {filteredAdvocates.map((advocate) => (
+              <tr key={advocate.id} className="border-t hover:bg-gray-100">
                 <td className="py-3 px-4">{advocate.firstName}</td>
                 <td className="py-3 px-4">{advocate.lastName}</td>
                 <td className="py-3 px-4">{advocate.city}</td>
                 <td className="py-3 px-4">{advocate.degree}</td>
                 <td className="py-3 px-4">
                   {advocate.specialties.map((s, index) => (
-                    <div key={index}>{s}</div>
+                    <div key={`${advocate.id - index}`}>{s}</div>
                   ))}
                 </td>
                 <td className="py-3 px-4">{advocate.yearsOfExperience}</td>
