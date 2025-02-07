@@ -1,17 +1,7 @@
 "use client";
 
+import { Advocate } from "@/db/types";
 import { useEffect, useState } from "react";
-
-/** declare an advocate type based on DB model */
-type Advocate = {
-  firstName: string;
-  lastName: string;
-  city: string;
-  degree: string;
-  specialties: string[];
-  yearsOfExperience: number;
-  phoneNumber: number;
-};
 
 export default function Home() {
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
