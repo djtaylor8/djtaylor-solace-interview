@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-/** custom hook to debounce search values */
+/** custom hook used to add debounce value to search */
 export default function useDebounce(value: any, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
